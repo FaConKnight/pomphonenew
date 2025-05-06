@@ -20,7 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sell_price = $_POST['sell_price'] ?? null;
     $wholesale_price = $_POST['wholesale_price'] ?? null;
     $quantity = $_POST['quantity'] ?? 0;
-    $imei_list = $_POST['imei_list'] ?? [];
+    $imei_text = $_POST['imei_list'] ?? '';
+    $imei_list = array_filter(array_map('trim', explode("\n", $imei_text)));
     $employee_id = $_SESSION['employee_id'] ?? 0;
 
     if (!$product_id || !$cost_price || !$sell_price) {
@@ -40,9 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($imei_list as $imei) {
                     $imei = trim($imei);
                     if ($imei === '') continue;
-
-                    $stmt = $pdo->prepare("INSERT INTO product_items (product_id, imei1, cost_price, sell_price, wholesale_price, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'in_stock', NOW(), NOW())");
-                    $stmt->execute([$product_id, $imei, $cost_price, $sell_price, $wholesale_price]);
+                    $check = $pdo->prepare("SELECT COUNT(*) FROM product_items WHERE imei1 = ?");
+                    $check->execute([$imei]);
+                    if ($check->fetchColumn() == 0) {
+                        $stmt = $pdo->prepare("INSERT INTO product_items (product_id, imei1, cost_price, sell_price, wholesale_price, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'in_stock', NOW(), NOW())");
+                        $stmt->execute([$product_id, $imei, $cost_price, $sell_price, $wholesale_price]);
+                    }
                 }
             }
 
