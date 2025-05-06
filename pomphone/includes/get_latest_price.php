@@ -15,7 +15,7 @@ if (!$product_id || !is_numeric($product_id)) {
 if ($is_trackable) {
     $stmt = $pdo->prepare("SELECT cost_price, sell_price, wholesale_price FROM products_items WHERE product_id = ? ORDER BY id DESC LIMIT 1");
 } else {
-    $stmt = $pdo->prepare("SELECT cost_price, sell_price, wholesale_price,sku FROM products WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT cost_price, sell_price, wholesale_price FROM products WHERE id = ?");
 }
 
 $stmt->execute([$product_id]);

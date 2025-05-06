@@ -115,6 +115,7 @@ document.getElementById('category_id').addEventListener('change', function () {
                 opt.value = product.id;
                 opt.textContent = product.name;
                 opt.dataset.trackable = product.is_trackable;
+                opt.dataset.sku = product.sku;
                 productSelect.appendChild(opt);
             });
             productSelect.disabled = false;
@@ -144,7 +145,7 @@ document.getElementById('product_id').addEventListener('change', function () {
             document.getElementById('cost_price').value = data.cost_price;
             document.getElementById('sell_price').value = data.sell_price;
             document.getElementById('wholesale_price').value = data.wholesale_price;
-            document.getElementById('sku_display').value = data.sku;
+            
         });
 });
 </script>
