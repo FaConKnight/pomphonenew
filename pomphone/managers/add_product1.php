@@ -3,6 +3,7 @@
 
 define('SECURE_ACCESS', true);
 require_once('../includes/connectdb.php');
+require_once('../includes/session.php'); // เช็ค session employee login
 
 $page_title = "เพิ่มสินค้าเข้าสต๊อก";
 $success = null;
@@ -28,7 +29,7 @@ $category_list = $category_stmt->fetchAll();
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" action="save_product.php" class="form-horizontal" id="addProductForm">
+                <form method="POST" action="../includes/save_product.php" class="form-horizontal" id="addProductForm">
                     <div class="form-group">
                         <label>หมวดหมู่สินค้า</label>
                         <select name="category_id" id="category_id" class="form-control" required>
@@ -145,7 +146,7 @@ document.getElementById('product_id').addEventListener('change', function () {
             document.getElementById('cost_price').value = data.cost_price;
             document.getElementById('sell_price').value = data.sell_price;
             document.getElementById('wholesale_price').value = data.wholesale_price;
-            
+
         });
 });
 </script>
