@@ -34,13 +34,13 @@
                                     <span class="bot-line"></span>คลังสินค้า</a>
                                 <ul class="header3-sub-list list-unstyled">
                                     <li>
-                                        <a href="stores.php">สินค้าทั้งหมด</a>
+                                        <a href="show_product_all.php">สินค้าทั้งหมด</a>
                                     </li>
                                     <li>
-                                        <a href="addbill.php">เพิ่มสินค้า</a>
+                                        <a href="add_product.php">เพิ่มสินค้า</a>
                                     </li>
                                     <li>
-                                        <a href="grid.html">เพิ่มหมวดหมู่</a>
+                                        <a href="show_product_name.php">รายชื่อสินค้า</a>
                                     </li>
                                     <li>
                                         <a href="fontawesome.html">แก้ไขข้อมูลสินค้า</a>

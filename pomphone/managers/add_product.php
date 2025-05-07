@@ -9,7 +9,7 @@ $page_title = "เพิ่มสินค้าเข้าสต๊อก";
 $success = null;
 
 // ดึงหมวดหมู่สินค้า
-$category_stmt = $pdo->query("SELECT id, name FROM categories ORDER BY name ASC");
+$category_stmt = $pdo->query("SELECT id, name FROM categories ORDER BY id ASC");
 $category_list = $category_stmt->fetchAll();
 
 ?>
@@ -49,7 +49,7 @@ $category_list = $category_stmt->fetchAll();
 
                     <div id="sku_section" style="display: none;">
                         <div class="form-group">
-                            <label>SKU</label>
+                            <label>SKU/Barcode</label>
                             <input type="text" id="sku_display" class="form-control" readonly>
                         </div>
                     </div>
