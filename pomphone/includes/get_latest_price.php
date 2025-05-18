@@ -1,6 +1,7 @@
 <?php
 define('SECURE_ACCESS', true);
 require_once('../includes/connectdb.php');
+require_once('../includes/session.php');
 
 header('Content-Type: application/json');
 

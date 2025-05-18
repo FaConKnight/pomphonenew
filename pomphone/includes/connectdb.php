@@ -1,7 +1,9 @@
 <?php
 // ป้องกันการเข้าตรงไฟล์
-if (!defined('SECURE_ACCESS')) {
-    die("Access denied");
+$allowed_paths = ['/backend1/api/line_webhook.php', '/backend1/api/line_webhook_test.php'];
+if (!defined('SECURE_ACCESS') && !in_array($_SERVER['PHP_SELF'], $allowed_paths)) {
+  http_response_code(403);
+  exit('Access denied.');
 }
 
 // ตั้งค่าระบบ

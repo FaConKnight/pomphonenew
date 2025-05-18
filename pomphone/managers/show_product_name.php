@@ -77,7 +77,7 @@ if (isset($_GET['toggle']) && isset($_GET['pid'])) {
                 <td><?= htmlspecialchars($p['name']) ?></td>
                 <td><?= htmlspecialchars($p['sku']) ?></td>
                 <td><?= htmlspecialchars($p['category_name']) ?></td>
-                <td><?= $p['is_trackable'] ? '✔️' : '-' ?></td>
+                <td><?= $p['is_trackable'] ? '✔️' : '✖️' ?></td>
                 <td><?= $p['is_active'] ? '<span class="text-success">เปิด</span>' : '<span class="text-danger">ปิด</span>' ?></td>
                 <td><a href="?toggle=1&pid=<?= $p['id'] ?>&category_id=<?= $selected_category ?>" class="btn btn-sm btn-warning">สลับ</a></td>
                 <td><?= date('d/m/Y H:i', strtotime($p['created_at'])) ?></td>

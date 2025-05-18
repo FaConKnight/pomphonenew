@@ -34,16 +34,16 @@
                                     <span class="bot-line"></span>คลังสินค้า</a>
                                 <ul class="header3-sub-list list-unstyled">
                                     <li>
-                                        <a href="show_product_all.php">สินค้าทั้งหมด</a>
+                                        <a href="../managers/show_product_all.php">สินค้าทั้งหมด</a>
                                     </li>
                                     <li>
-                                        <a href="add_product.php">เพิ่มสินค้า</a>
+                                        <a href="../managers/add_product.php">เพิ่มสินค้า</a>
                                     </li>
                                     <li>
-                                        <a href="show_product_name.php">รายชื่อสินค้า</a>
+                                        <a href="../managers/show_product_name.php">รายชื่อสินค้า</a>
                                     </li>
                                     <li>
-                                        <a href="fontawesome.html">แก้ไขข้อมูลสินค้า</a>
+                                        <a href="../managers/fontawesome.html">แก้ไขข้อมูลสินค้า</a>
                                     </li>
                                 </ul>
                             </li>
@@ -59,7 +59,29 @@
                                         <a href="register.html">ข้อมูล พนักงาน</a>
                                     </li>
                                     <li>
-                                        <a href="forget-pass.html">ข้อมูล ลูกค้า</a>
+                                        <a href="../managers/show_customer.php">ข้อมูล ลูกค้า</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="has-sub">
+                                <a href="#">
+                                    <i class="fa-solid fa-sack-dollar"></i>
+                                    <span class="bot-line"></span>ระบบออม</a>
+                                <ul class="header3-sub-list list-unstyled">
+                                    <li>
+                                        <a href="../saving/saving_dashboard.php">dashboard</a>
+                                    </li>
+                                    <li>
+                                        <a href="../saving/add_saving.php">เปิดบิลออม</a>
+                                    </li>
+                                    <li>
+                                        <a href="../saving/add_payment.php">บันทึกออม</a>
+                                    </li>
+                                    <li>
+                                        <a href="saving_pending.php">อนุมัติรายการแจ้งโอนเงิน</a>
+                                    </li>
+                                    <li>
+                                        <a href="../saving/show_saving.php">รายการออม</a>
                                     </li>
                                 </ul>
                             </li>
@@ -70,6 +92,9 @@
                                 <ul class="header3-sub-list list-unstyled">
                                     <li>
                                         <a href="button.html">ยอดขาย</a>
+                                    </li>
+                                    <li>
+                                        <a href="stock_logs.php">Stock Log</a>
                                     </li>
                                 </ul>
                             </li>

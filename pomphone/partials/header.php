@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
   <!-- Required meta tags-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -9,9 +12,8 @@
     <title>จัดการหลังบ้านร้าน ป้อมมือถือ V.2</title>
     <link rel="icon" type="image/x-icon" href="../images/icon/icon-re-32-32.png">
     <!-- Fontfaces CSS-->
-    <link href="css/font-face.css" rel="stylesheet" media="all">
-    <link href="../vendor/font-awesome-4.7/css/font-awesome.min.css" rel="stylesheet" media="all">
-    <link href="../vendor/font-awesome-5/css/fontawesome-all.min.css" rel="stylesheet" media="all">
+    <link href="../vendor/font-awesome-6/css/v5-font-face.css" rel="stylesheet" media="all">
+    <link href="../vendor/font-awesome-6/css/all.min.css" rel="stylesheet" media="all">
     <link href="../vendor/mdi-font/css/material-design-iconic-font.min.css" rel="stylesheet" media="all">
 
     <!-- Bootstrap CSS-->
@@ -28,3 +30,4 @@
 
     <!-- Main CSS-->
     <link href="../css/theme.css" rel="stylesheet" media="all">
+  </head>

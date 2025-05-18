@@ -12,26 +12,17 @@ $selected_category = $_GET['category_id'] ?? '';
 $selected_range = $_GET['range'] ?? '1y';
 $products = [];
 $category_name = '';
+
+
 $mobile_stock_map = [];
-
-// ถ้ายังไม่เลือกหมวดหมู่ ให้รวมรายการมือถือตามชื่อสินค้า
-if ($selected_category === '') {
-  $stmt = $pdo->prepare("SELECT p.name, COUNT(pi.id) AS total_in_stock
-                          FROM products_items pi
-                          INNER JOIN products p ON pi.product_id = p.id
-                          INNER JOIN categories c ON p.category_id = c.id
-                          WHERE c.name = 'มือถือ' AND pi.status = 'in_stock'
-                          GROUP BY p.name
-                          ORDER BY p.name ASC");
-  $stmt->execute();
-  $mobile_summary = $stmt->fetchAll();
-
-  // map ชื่อสินค้า => จำนวนคงเหลือ
-  foreach ($mobile_summary as $m) {
-    $mobile_stock_map[$m['name']] = $m['total_in_stock'];
-  }
-} else {
-  $mobile_summary = [];
+$stock_stmt = $pdo->query("SELECT p.name, COUNT(pi.id) as count
+                            FROM products_items pi
+                            INNER JOIN products p ON pi.product_id = p.id
+                            INNER JOIN categories c ON p.category_id = c.id
+                            WHERE pi.status = 'in_stock' AND c.name = 'มือถือ'
+                            GROUP BY p.name");
+foreach ($stock_stmt->fetchAll() as $row) {
+  $mobile_stock_map[$row['name']] = $row['count'];
 }
 
 // กำหนดช่วงเวลาเริ่มต้น
@@ -168,9 +159,19 @@ if ($selected_category !== '') {
                   <td><?= htmlspecialchars($p['serial_number']) ?></td>
                   <td><?= htmlspecialchars($p['barcode']) ?></td>
                   <td><?= htmlspecialchars($p['status']) ?></td>
-                  <li><?= htmlspecialchars($m['name']) ?>: <strong><?= $m['total_in_stock'] ?></strong> เครื่อง</li>
                 <?php else: ?>
-                  <td><?= number_format($p['stock_quantity']) ?></td>
+                  <td>                
+                    <?php 
+                    if ($p['category_name'] === 'มือถือ') {
+                      $name = $p['product_name'] ?? $p['name'];
+                      echo isset($mobile_stock_map[$name]) 
+                        ? '<span class="badge badge-info">' . $mobile_stock_map[$name] . ' เครื่อง</span>' 
+                        : '-';
+                    } else {
+                      echo number_format($p['stock_quantity']);
+                    }
+                  ?>
+                  </td>
                 <?php endif; ?>
                 <td><?= $p['cost_price'] !== null ? number_format($p['cost_price'], 2) : '-' ?></td>
                 <td><?= $p['wholesale_price'] !== null ? number_format($p['wholesale_price'], 2) : '-' ?></td>
@@ -199,4 +200,4 @@ document.getElementById('searchInput').addEventListener('keyup', function () {
 });
 </script>
 
-<?php include_once('../partials/footer.php'); ?>
+<?php //include_once('../partials/footer.php'); ?>
