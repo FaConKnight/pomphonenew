@@ -7,6 +7,7 @@ require_once('../includes/connectdb.php');
 $page_title = "แจ้งการโอนเงินออมมือถือ";
 $success = null;
 $error = null;
+$warning = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $phone = $_POST['phone_number'] ?? '';
@@ -16,6 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!$phone || !$amount || !$file || $file['error'] !== 0) {
     $error = "กรุณากรอกข้อมูลให้ครบและแนบสลิป";
   } else {
+    $check = $pdo->prepare("SELECT cua_id FROM customer_account WHERE cua_tel = ? LIMIT 1");
+    $check->execute([$phone]);
+    if ($check->rowCount() === 0) {
+      $warning = "⚠️ ไม่พบเบอร์โทรนี้ในระบบ เราจะเก็บข้อมูลไว้ให้เจ้าหน้าที่ตรวจสอบ";
+    }
+
     $allowed_types = ['image/jpeg', 'image/png'];
     $max_size = 2 * 1024 * 1024;
 
@@ -83,6 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <?php elseif ($error): ?>
         <div class="alert alert-danger text-center"><?= $error ?></div>
       <?php endif; ?>
+      <?php if ($warning): ?>
+        <div class="alert alert-warning text-center"><?= $warning ?></div>
+      <?php endif; ?>
 
       <?php if (!$success): ?>
       <form method="POST" enctype="multipart/form-data">
@@ -99,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <input type="file" name="slip" accept="image/jpeg,image/png" class="form-control-file" required>
         </div>
         <label class="text-muted">เป็นการแจ้งยอดโอนเงินเท่านั้น ยอดปัจจุบันจะถูกอัพเดตภายในไม่เกิน 24 ชั่วโมงหลังจากตรวจสอบสลิปแล้ว</label>
-        <br>
+                <br>
         <label class="text-muted">*หากเกิน 24 ชั่วโมง ยอดไม่ถูกปรับโปรดติดต่อเจ้าหน้าที่*</label>
         <button type="submit" class="btn btn-primary btn-block mt-3">📤 ส่งข้อมูล</button>
       </form>

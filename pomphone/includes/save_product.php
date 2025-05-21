@@ -1,78 +1,85 @@
 <?php
-// /cooladmin/manager/save_product.php
+// /cooladmin/includes/save_product.php
 
 define('SECURE_ACCESS', true);
 require_once('../includes/connectdb.php');
 require_once('../includes/session.php');
-session_start();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../managers/add_product.php');
-    exit;
+  http_response_code(405);
+  exit('Method Not Allowed');
+}
+
+$employee_id = $_SESSION['employee_id'] ?? null;
+if (!$employee_id || ($_SESSION['employee_rank'] ?? 0) < 77) {
+  http_response_code(403);
+  exit('Permission Denied');
 }
 
 $product_id = $_POST['product_id'] ?? null;
-$cost_price = $_POST['cost_price'] ?? null;
-$sell_price = $_POST['sell_price'] ?? null;
-$wholesale_price = $_POST['wholesale_price'] ?? null;
-$quantity = $_POST['quantity'] ?? 0;
-$imei_raw = $_POST['imei_list'] ?? []; // แล้วใช้ array_map('trim', $imei_raw)
-$employee_id = $_SESSION['employee_id'] ?? 0;
+$category_id = $_POST['category_id'] ?? null;
+$supplier_id = $_POST['supplier_id'] ?? null;
+$cost_price = floatval($_POST['cost_price'] ?? 0);
+$sell_price = floatval($_POST['sell_price'] ?? 0);
+$wholesale_price = floatval($_POST['wholesale_price'] ?? 0);
+$quantity = intval($_POST['quantity'] ?? 0);
+$imei_list = trim($_POST['imei_list'] ?? '');
 
-// ตรวจสอบข้อมูลเบื้องต้น
-if (!$product_id || !$cost_price || !$sell_price) {
-    $_SESSION['error'] = "\u274c กรุณากรอกข้อมูลให้ครบถ้วน";
-    header('Location: ../managers/add_product.php');
-    exit;
+if (!$product_id || !$category_id || !$supplier_id) {
+  exit('กรุณากรอกข้อมูลให้ครบ');
 }
-
-// ตรวจสอบว่าเป็นสินค้าต้อง track IMEI หรือไม่
-$stmt = $pdo->prepare("SELECT is_trackable FROM products WHERE id = ?");
-$stmt->execute([$product_id]);
-$product = $stmt->fetch(PDO::FETCH_ASSOC);
-$is_trackable = $product['is_trackable'] ?? 0;
 
 try {
-    $pdo->beginTransaction();
+  $pdo->beginTransaction();
 
-    if ($is_trackable) {
-        // มือถือ
-        $imei_list = array_filter(array_map('trim', explode("\n", $imei_raw)));
-        foreach ($imei_list as $imei) {
-            // ตรวจสอบ IMEI ซ้ำ
-            $check = $pdo->prepare("SELECT COUNT(*) FROM products_items WHERE imei1 = ?");
-            $check->execute([$imei]);
-            if ($check->fetchColumn() > 0) continue; // ข้าม IMEI ซ้ำ
+  // ตรวจสอบว่าสินค้านี้ track IMEI หรือไม่
+  $product_stmt = $pdo->prepare("SELECT is_trackable FROM products WHERE id = ? LIMIT 1");
+  $product_stmt->execute([$product_id]);
+  $product = $product_stmt->fetch();
+  if (!$product) throw new Exception("ไม่พบสินค้า");
 
-            // เพิ่มรายการ
-            $stmt = $pdo->prepare("INSERT INTO products_items (product_id, imei1, cost_price, sell_price, wholesale_price, status, created_at, updated_at)
-                                   VALUES (?, ?, ?, ?, ?, 'in_stock', NOW(), NOW())");
-            $stmt->execute([$product_id, $imei, $cost_price, $sell_price, $wholesale_price]);
+  $is_trackable = $product['is_trackable'];
 
-            $item_id = $pdo->lastInsertId();
+  if ($is_trackable) {
+    // มือถือ (track IMEI)
+    $imeis = array_filter(array_map('trim', explode("\n", $imei_list)));
+    foreach ($imeis as $imei) {
+      // ตรวจสอบ IMEI ซ้ำ
+      $check = $pdo->prepare("SELECT COUNT(*) FROM products_items WHERE imei1 = ?");
+      $check->execute([$imei]);
+      if ($check->fetchColumn() > 0) continue;
 
-            // log
-            $log = $pdo->prepare("INSERT INTO stock_logs (product_item_id, action, quantity, employee_id, remark, created_at)
-                                  VALUES (?, 'in', 1, ?, ?, NOW())");
-            $log->execute([$item_id, $employee_id, "เพิ่มมือถือ IMEI $imei"]);
-        }
-    } else {
-        // สินค้าทั่วไป
-        $stmt = $pdo->prepare("UPDATE products SET stock_quantity = stock_quantity + ? WHERE id = ?");
-        $stmt->execute([$quantity, $product_id]);
-        // log แบบรวมจำนวน
-        $log = $pdo->prepare("INSERT INTO stock_logs (product_item_id, product_id, action, quantity, employee_id, remark, created_at)
-                              VALUES (?, 'in', ?, ?, ?, NOW())");
-        $log->execute([0, $product_id, $quantity, $employee_id, "เพิ่มสินค้าเข้าสต๊อก จำนวน $quantity"]);
-        
+      // เพิ่มสินค้า
+      $insert = $pdo->prepare("INSERT INTO products_items 
+        (product_id, imei1, status, cost_price, sell_price, wholesale_price, source_supplier_id, created_at, updated_at)
+        VALUES (?, ?, 'in_stock', ?, ?, ?, ?, NOW(), NOW())");
+      $insert->execute([$product_id, $imei, $cost_price, $sell_price, $wholesale_price, $supplier_id]);
+
+      // เพิ่ม log
+      $item_id = $pdo->lastInsertId();
+      $log = $pdo->prepare("INSERT INTO stock_logs 
+        (product_item_id, action, quantity, employee_id, remark, supplier_id, created_at)
+        VALUES (?, 'in', 1, ?, ?, ?, NOW())");
+      $log->execute([$item_id, $employee_id, "เพิ่มมือถือ IMEI $imei", $supplier_id]);
     }
+  } else {
+    // สินค้าทั่วไป
+    $update = $pdo->prepare("UPDATE products 
+      SET stock_quantity = stock_quantity + ?, cost_price = ?, sell_price = ?, wholesale_price = ?
+      WHERE id = ?");
+    $update->execute([$quantity, $cost_price, $sell_price, $wholesale_price, $product_id]);
 
-    $pdo->commit();
-    $_SESSION['success'] = "\u2705 เพิ่มสินค้าเข้าสต๊อกเรียบร้อยแล้ว";
-}catch (Exception $e) {
-    $pdo->rollBack();
-    $_SESSION['error'] = "\u274c เกิดข้อผิดพลาด: " . $e->getMessage();
+    $log = $pdo->prepare("INSERT INTO stock_logs 
+      (product_id, employee_id, action, quantity, price, supplier_id, created_at)
+      VALUES (?, ?, 'add_stock', ?, ?, ?, NOW())");
+    $log->execute([$product_id, $employee_id, $quantity, $cost_price, $supplier_id]);
+  }
+
+  $pdo->commit();
+  header('Location: ../managers/add_product.php?success=เพิ่มสินค้าเข้าสต๊อกสำเร็จ');
+  exit;
+} catch (Exception $e) {
+  $pdo->rollBack();
+  http_response_code(500);
+  echo "❌ เกิดข้อผิดพลาด: " . $e->getMessage();
 }
-
-header('Location: ../managers/add_product.php');
-exit;

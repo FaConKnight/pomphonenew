@@ -53,7 +53,7 @@
                                     <span class="bot-line"></span>ข้อมูลบุคคล</a>
                                 <ul class="header3-sub-list list-unstyled">
                                     <li>
-                                        <a href="login.html">ข้อมูล บริษัท</a>
+                                        <a href="../managers/show_company.php">ข้อมูล บริษัท</a>
                                     </li>
                                     <li>
                                         <a href="register.html">ข้อมูล พนักงาน</a>
