@@ -6,12 +6,15 @@ require_once('../includes/connectdb.php');
 require_once('../includes/session.php'); // เช็ค session employee login
 
 $page_title = "เพิ่มสินค้าเข้าสต๊อก";
-$success = null;
+$success = $_GET['success'] ?? null;
 
 // ดึงหมวดหมู่สินค้า
 $category_stmt = $pdo->query("SELECT id, name FROM categories ORDER BY id ASC");
 $category_list = $category_stmt->fetchAll();
 
+// ดึงรายชื่อบริษัท (supplier)
+$supplier_stmt = $pdo->query("SELECT id, name_th FROM suppliers ORDER BY name_th ASC");
+$supplier_list = $supplier_stmt->fetchAll();
 ?>
 
 <?php include_once('../partials/header.php'); ?>
@@ -52,6 +55,16 @@ $category_list = $category_stmt->fetchAll();
                             <label>SKU/Barcode</label>
                             <input type="text" id="sku_display" class="form-control" readonly>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="supplier_id">บริษัทที่มาของสินค้า</label>
+                      <select name="supplier_id" id="supplier_id" class="form-control" required>
+                        <option value="">-- เลือกบริษัท --</option>
+                        <?php foreach ($supplier_list as $s): ?>
+                          <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name_th']) ?></option>
+                        <?php endforeach; ?>
+                      </select>
                     </div>
 
                     <div id="price_section" style="display: none;">
@@ -146,7 +159,6 @@ document.getElementById('product_id').addEventListener('change', function () {
             document.getElementById('cost_price').value = data.cost_price;
             document.getElementById('sell_price').value = data.sell_price;
             document.getElementById('wholesale_price').value = data.wholesale_price;
-
         });
 });
 </script>
