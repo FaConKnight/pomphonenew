@@ -32,7 +32,7 @@ try {
   $latest = $pdo->query("SELECT cua_id FROM customer_account ORDER BY cua_id DESC LIMIT 1")->fetchColumn();
   $running_number = str_pad((int)$latest + 1, 6, '0', STR_PAD_LEFT);
   $year_code = date('y'); // ปี ค.ศ. 2 หลัก เช่น 24
-  $new_username = 'C' . $year_code . $running_number;
+  $new_username = 'CU' . $year_code . $running_number;
 
 
   // บันทึก customer_account
