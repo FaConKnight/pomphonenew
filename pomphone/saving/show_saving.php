@@ -12,7 +12,7 @@ $sql = "SELECT s.*, c.cua_name, c.cua_lastname, p.name AS product_name
         FROM savings s
         LEFT JOIN customer_account c ON s.customer_id = c.cua_id
         LEFT JOIN products p ON s.product_id = p.id
-        WHERE 1";
+        WHERE 1 ";
 $params = [];
 
 if ($search !== '') {
@@ -25,7 +25,7 @@ if ($search !== '') {
   $params = array_fill(0, 4, "%$search%");
 }
 
-$sql .= " ORDER BY s.created_at DESC";
+$sql .= " ORDER BY s.created_at DESC LIMIT 10";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $savings = $stmt->fetchAll();

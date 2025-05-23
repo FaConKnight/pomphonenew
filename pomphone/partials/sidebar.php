@@ -1,3 +1,13 @@
+<?php
+
+$rank = $_SESSION['employee_rank'] ?? 0;
+$admin = $rank >= 99; // manager ขึ้นไปเห็นชื่อเต็ม
+$manager = $rank >= 88; // manager ขึ้นไปเห็นชื่อเต็ม
+$headshop = $rank >= 77; // Headshop ขึ้นไปแก้ไขข้อมูลได้
+$employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อมูลได้
+
+?>
+
 <!-- HEADER DESKTOP-->
         <header class="header-desktop3 d-none d-lg-block">
             <div class="section__content section__content--p35">
@@ -9,25 +19,30 @@
                     </div>
                     <div class="header__navbar">
                         <ul class="list-unstyled">
+                            <?php if ($employee): ?>
                             <li>
-                                <a href="sell.php" target="_blank">
+                                <a href="../pos/sale.php" >
                                     <i class="fas fa-shopping-basket"></i>
                                     <span class="bot-line"></span>ขายของ</a>
                             </li>
+                            <?php endif; ?>                                
+                            <?php if ($employee): ?>
                             <li class="has-sub">
                                 <a href="./">
-                                    <i class="fas fa-wrench"></i>เครื่องซ่อม
+                                    <i class="fas fa-wrench"></i>ระบบงานซ่อม
                                     <span class="bot-line"></span>
                                 </a>
                                 <ul class="header3-sub-list list-unstyled">
                                     <li>
-                                        <a href="stores.php">รับเครื่องซ่อมจากลุกค้า</a>
+                                        <a href="../repair/add_repair.php">รับเครื่องซ่อมจากลูกค้า</a>
                                     </li>
                                     <li>
                                         <a href="addbill.php">เช็คเครื่องซ่อม/ปรับเปลี่ยนสถานะ</a>
                                     </li>
                                 </ul>
                             </li>
+                            <?php endif; ?>                            
+                            <?php if ($manager): ?>
                             <li class="has-sub">
                                 <a href="#">
                                     <i class="fas fa-desktop"></i>
@@ -47,6 +62,8 @@
                                     </li>
                                 </ul>
                             </li>
+                            <?php endif; ?>                            
+                            <?php if ($manager): ?>
                             <li class="has-sub">
                                 <a href="#">
                                     <i class="fas fa-copy"></i>
@@ -63,41 +80,57 @@
                                     </li>
                                 </ul>
                             </li>
+                            <?php endif; ?>
+                            <?php if ($employee&&false): ?>
                             <li class="has-sub">
                                 <a href="#">
                                     <i class="fa-solid fa-sack-dollar"></i>
                                     <span class="bot-line"></span>ระบบออม</a>
                                 <ul class="header3-sub-list list-unstyled">
-                                    <li>
-                                        <a href="../saving/saving_dashboard.php">dashboard</a>
-                                    </li>
-                                    <li>
-                                        <a href="../saving/add_saving.php">เปิดบิลออม</a>
-                                    </li>
-                                    <li>
-                                        <a href="../saving/add_payment.php">บันทึกออม</a>
-                                    </li>
-                                    <li>
-                                        <a href="saving_pending.php">อนุมัติรายการแจ้งโอนเงิน</a>
-                                    </li>
-                                    <li>
-                                        <a href="../saving/show_saving.php">รายการออม</a>
-                                    </li>
+                                    <li><a href="../saving/saving_dashboard.php">dashboard</a></li>
+                                    <li><a href="../saving/add_saving.php">เปิดบิลออม</a></li>
+                                    <li><a href="../saving/add_payment.php">บันทึกออม</a></li>
+                                    <li><a href="../saving/saving_pending.php">อนุมัติรายการแจ้งโอนเงิน</a></li>
+                                    <li><a href="../saving/show_saving.php">รายการออม</a></li>
                                 </ul>
                             </li>
+                            <?php endif; ?>
+                            <?php if ($employee): ?>
                             <li class="has-sub">
                                 <a href="#">
                                     <i class="fas fa-desktop"></i>
-                                    <span class="bot-line"></span>สถิติต่างๆ</a>
+                                    <span class="bot-line"></span>Backend</a>
                                 <ul class="header3-sub-list list-unstyled">
-                                    <li>
-                                        <a href="button.html">ยอดขาย</a>
-                                    </li>
-                                    <li>
-                                        <a href="stock_logs.php">Stock Log</a>
-                                    </li>
+                                    <li><a href="../pos/sale_report.php">ยอดขายประจำวัน</a></li>
+                                    <li><a href="../pos/sale_list.php">รายการใบเสร็จ (Reprint)</a></li>
+
                                 </ul>
                             </li>
+                        <?php endif; ?>
+                        <?php if ($manager): ?>
+                        <li class="has-sub">
+                            <a href="#">
+                                <i class="fas fa-tools"></i>
+                                <span class="bot-line"></span>Backend (Manager)</a>
+                            <ul class="header3-sub-list list-unstyled">
+                                <li><a href="../managers/manage_footer_rules.php">ข้อความท้ายใบเสร็จ</a></li>
+                                <li><a href="../managers/sale_report.php">รายงานยอดขาย</a></li>
+                            </ul>
+                        </li>
+                        <?php endif; ?>
+                        <?php if ($admin): ?>
+                        <li class="has-sub">
+                            <a href="#">
+                                <i class="fas fa-tools"></i>
+                                <span class="bot-line"></span>Logs</a>
+                            <ul class="header3-sub-list list-unstyled">
+                                <li><a href="../managers/repair_logs.php">Repair Logs (ระบบซ่อม)</a></li>
+                                <li><a href="../managers/stock_logs.php">Stock Logs (ระบบสินค้า)</a></li>
+                                <li><a href="../managers/saving_logs.php">Saving Logs (ระบบออม)</a></li>
+                                <li><a href="../managers/system_logs.php">System Logs </a></li>
+                            </ul>
+                        </li>
+                        <?php endif; ?>
                         </ul>
                     </div>
                     <div class="header__tool">

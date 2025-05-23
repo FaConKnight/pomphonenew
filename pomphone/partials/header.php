@@ -29,6 +29,8 @@
     <link href="../vendor/perfect-scrollbar/perfect-scrollbar.css" rel="stylesheet" media="all">
 
     <!-- Main CSS-->
-    <link href="../css/theme.css" rel="stylesheet" media="all">
+    <!-- link href="../css/theme.css" rel="stylesheet" media="all" -->
+    <link href="../css/theme.css?v=<?= time() ?>" rel="stylesheet" media="all">
+
   </head>
   <body>
