@@ -40,7 +40,8 @@ if (isset($_GET['toggle']) && isset($_GET['pid'])) {
         <h3 class="mb-4">รายการสินค้าตามหมวดหมู่</h3>
 
         <div class="mb-3">
-          <a href="add_category.php" class="btn btn-success btn-sm">➕ เพิ่มหมวดหมู่</a>
+          <a href="add_category.php" class="btn btn-success btn-sm">➕ เพิ่มหมวดหมู่หลัก</a>
+          <a href="add_subcategory.php" class="btn btn-warning btn-sm" hidden>➕ เพิ่มหมวดหมู่ย่อย(ยังใช้ไม่ได้)</a>
           <a href="add_product_name.php" class="btn btn-primary btn-sm">➕ เพิ่มรายการสินค้า</a>
         </div>
 

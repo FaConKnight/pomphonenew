@@ -168,6 +168,7 @@ $is_editable = $rank >= 77; // Headshop ขึ้นไปแก้ไขข้�
 </div>
 
 </div>
+<?php include_once("../partials/footer.php"); ?>
 <script>
 function openContactModal(id, tel, lineid, address, facebook, note, psid) {
   document.getElementById('modal_cua_id').value = id;
@@ -213,4 +214,3 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
 });
 </script>
 
-<?php include_once('../partials/footer.php'); ?>
