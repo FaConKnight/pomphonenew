@@ -2,8 +2,14 @@
 // /cooladmin/manager/show_company.php
 
 define('SECURE_ACCESS', true);
-require_once('../includes/connectdb.php');
-require_once('../includes/session.php');
+require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../partials/header.php';
+require_once __DIR__ . '/../partials/sidebar.php';
+
+if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 77) {
+    http_response_code(403);
+    exit("Unauthorized");
+}
 
 $page_title = "จัดการข้อมูลบริษัทผู้จำหน่ายสินค้า";
 
@@ -17,9 +23,7 @@ if ($search) {
 }
 $suppliers = $stmt->fetchAll();
 ?>
-
-<?php include_once('../partials/header.php'); ?>
-<?php include_once('../partials/sidebar.php'); ?>
+<main>
 <div class="page-container">
   <div class="main-content">
     <div class="section__content section__content--p30">
@@ -27,7 +31,7 @@ $suppliers = $stmt->fetchAll();
         <h3 class="mb-4">🏢 ข้อมูลบริษัท / ร้านค้าที่จัดส่งสินค้า</h3>
 
         <form class="form-inline mb-3" method="get">
-          <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" class="form-control mr-2" placeholder="ชื่อบริษัท / เลขประจำตัวผู้เสียภาษี">
+          <input type="text" name="search" value="<?= safe_text($search) ?>" class="form-control mr-2" placeholder="ชื่อบริษัท / เลขประจำตัวผู้เสียภาษี">
           <button class="btn btn-primary">ค้นหา</button>
           <button type="button" class="btn btn-success ml-2" data-toggle="modal" data-target="#addCompanyModal">➕ เพิ่มบริษัท</button>
         </form>
@@ -49,12 +53,12 @@ $suppliers = $stmt->fetchAll();
             <?php foreach ($suppliers as $i => $s): ?>
               <tr>
                 <td><?= $i+1 ?></td>
-                <td><?= htmlspecialchars($s['name_th']) ?></td>
-                <td><?= htmlspecialchars($s['name_en']) ?></td>
-                <td><?= htmlspecialchars($s['taxid']) ?></td>
-                <td><?= htmlspecialchars($s['contact_name'] . ' ' . $s['phone']) ?></td>
-                <td><?= htmlspecialchars($s['email']) ?></td>
-                <td><?= htmlspecialchars($s['address']) ?></td>
+                <td><?= safe_text($s['name_th']) ?></td>
+                <td><?= safe_text($s['name_en']) ?></td>
+                <td><?= safe_text($s['taxid']) ?></td>
+                <td><?= safe_text($s['contact_name'] . ' ' . $s['phone']) ?></td>
+                <td><?= safe_text($s['email']) ?></td>
+                <td><?= safe_text($s['address']) ?></td>
                 <td><button class="btn btn-info btn-sm">✏️ แก้ไข</button></td>
               </tr>
             <?php endforeach; ?>
@@ -140,4 +144,5 @@ document.getElementById('addCompanyForm').addEventListener('submit', function(e)
   .catch(err => alert("เกิดข้อผิดพลาด: " + err));
 });
 </script>
-<?php include_once('../partials/footer.php'); ?>
+</main>
+<?php require_once __DIR__ . '/../partials/footer.php'; ?>

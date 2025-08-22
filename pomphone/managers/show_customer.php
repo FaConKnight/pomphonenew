@@ -2,8 +2,14 @@
 // /cooladmin/manager/show_customer.php
 
 define('SECURE_ACCESS', true);
-require_once('../includes/connectdb.php');
-require_once('../includes/session.php');
+require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../partials/header.php';
+require_once __DIR__ . '/../partials/sidebar.php';
+
+if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 77) {
+    http_response_code(403);
+    exit("Unauthorized");
+}
 
 $page_title = "จัดการข้อมูลลูกค้า";
 
@@ -38,8 +44,7 @@ $is_view_full = $rank >= 88; // manager ขึ้นไปเห็นชื่�
 $is_editable = $rank >= 77; // Headshop ขึ้นไปแก้ไขข้อมูลได้
 ?>
 
-<?php include_once('../partials/header.php'); ?>
-<?php include_once('../partials/sidebar.php'); ?>
+<main>
 <div class="page-container">
   <div class="main-content">
     <div class="section__content section__content--p30">
@@ -47,7 +52,7 @@ $is_editable = $rank >= 77; // Headshop ขึ้นไปแก้ไขข้�
         <h3 class="mb-4">👥 รายชื่อลูกค้าทั้งหมด</h3>
 
         <form class="form-inline mb-3" method="get">
-          <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" class="form-control mr-2" placeholder="ชื่อ / เบอร์ / Line ID">
+          <input type="text" name="search" value="<?= safe_text($search) ?>" class="form-control mr-2" placeholder="ชื่อ / เบอร์ / Line ID">
           <button class="btn btn-primary">ค้นหา</button>
           <button type="button" class="btn btn-success ml-2" data-toggle="modal" data-target="#addCustomerModal">➕ เพิ่มลูกค้า</button>
         </form>
@@ -69,15 +74,16 @@ $is_editable = $rank >= 77; // Headshop ขึ้นไปแก้ไขข้�
             <?php foreach ($customers as $i => $c): ?>
               <tr>
                 <td><?= $i+1 ?></td>
-                <td><?= $is_view_full ? htmlspecialchars($c['cua_name'] . ' ' . $c['cua_lastname']) : htmlspecialchars(mask_data($c['cua_name']) . ' ' . mask_data($c['cua_lastname'])) ?></td>
-                <td><?= $is_view_full ? htmlspecialchars($c['cua_tel']) : htmlspecialchars(mask_data($c['cua_tel'], 'tel')) ?></td>
-                <td><?= $is_view_full ? htmlspecialchars($c['old_lineid']) : ($c['old_lineid'] ? '<span class="badge badge-success"> มี ID LINE แล้ว </span>' : '-') ?></td>
-                <td><?= htmlspecialchars($c['cua_rank']) ?></td>
-                <td><?= htmlspecialchars($c['cua_username']) ?></td>
-                <td><?= isset($c['cu_register']) ? date('d/m/Y', strtotime($c['cu_register'])) : '-' ?></td>
+                <td><?= $is_view_full ? safe_text($c['cua_name'] . ' ' . $c['cua_lastname']) : safe_text(mask_data($c['cua_name']) . ' ' . mask_data($c['cua_lastname'])) ?></td>
+                <td><?= $is_view_full ? safe_text($c['cua_tel']) : safe_text(mask_data($c['cua_tel'], 'tel')) ?></td>
+                <td><?= $is_view_full ? safe_text($c['old_lineid'] ?? '-') : ($c['old_lineid'] ? '<span class="badge badge-success"> มี ID LINE แล้ว </span>' : '-') ?>
+</td>
+                <td><?= safe_text($c['cua_rank']) ?></td>
+                <td><?= safe_text($c['cua_username']) ?></td>
+                <td><?= isset($c['cu_register']) ? date('d/m/Y', strtotime(safe_date($c['cu_register']))) : '-' ?></td>
                 <td>
                   <?php if ($is_editable): ?>
-                  <button class="btn btn-info btn-sm" onclick="openContactModal(<?= $c['cua_id'] ?>, '<?= htmlspecialchars($c['cua_tel']) ?>', '<?= htmlspecialchars($c['old_lineid']) ?>', '<?= htmlspecialchars($c['cu_addess']) ?>', '<?= htmlspecialchars($c['cu_facebook']) ?>', '<?= htmlspecialchars($c['cu_note']) ?>')">✏️ แก้ไขข้อมูล</button> 
+                  <button class="btn btn-info btn-sm" onclick="openContactModal(<?= $c['cua_id'] ?>, '<?= safe_text($c['cua_tel']) ?>', '<?= safe_text($c['old_lineid']) ?>', '<?= safe_text($c['cu_addess']) ?>', '<?= safe_text($c['cu_facebook']) ?>', '<?= safe_text($c['cu_note']) ?>')">✏️ แก้ไขข้อมูล</button> 
                   <?php else: ?>
                   -
                   <?php endif; ?>
@@ -168,7 +174,6 @@ $is_editable = $rank >= 77; // Headshop ขึ้นไปแก้ไขข้�
 </div>
 
 </div>
-<?php include_once("../partials/footer.php"); ?>
 <script>
 function openContactModal(id, tel, lineid, address, facebook, note, psid) {
   document.getElementById('modal_cua_id').value = id;
@@ -213,4 +218,7 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
   }).catch(err => alert("เกิดข้อผิดพลาด: " + err));
 });
 </script>
+
+</main>
+<?php require_once __DIR__ . '/../partials/footer.php'; ?>
 
