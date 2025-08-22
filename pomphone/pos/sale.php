@@ -1,44 +1,48 @@
-
 <?php
-// sale.php เวอร์ชัน UI มืออาชีพ + AJAX ค้นหาลูกค้า
+// sale.php เวอร์ชัน UI มืออาชีพ + AJAX ค้นหาลูกค้า พร้อมระบบคืนสินค้าแบบ Modal
 
 define('SECURE_ACCESS', true);
-require_once('../includes/connectdb.php');
-require_once('../includes/session.php');
-include_once('../partials/header.php');
-include_once('../partials/sidebar.php');
+require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../partials/header.php';
+require_once __DIR__ . '/../partials/sidebar.php';
 
 if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 11) {
     echo "<script>alert('ไม่มีสิทธิ์เข้าถึงหน้าขายสินค้า');window.location='../index.php';</script>";
     exit;
 }
 ?>
+<main>
 <div class="page-container">
-  <div class="main-content">
+  <div class="main-content" style="padding-top: 10px;">
     <div class="container-fluid">
-        <h3 class="mt-4">ระบบขายสินค้า POS</h3>
+        <h3 class="mt-4">ระบบขายสินค้า POS </h3>
         <div class="row mt-3">
             <div class="col-md-6">
                 <label>ค้นหาสินค้า (ชื่อ / บาร์โค้ด):</label>
                 <input type="text" class="form-control" id="search_input" placeholder="พิมพ์ชื่อหรือบาร์โค้ด..." autofocus>
                 <div id="product_list" class="list-group mt-2"></div>
-            </div>
+            </div> 
             <div class="col-md-6">
                 <div class="card p-3 shadow-sm">
                     <div class="form-group">
-                        <label>ค้นหาลูกค้า (ชื่อ / เบอร์ / Username):</label>
-                        <input type="text" class="form-control" id="customer_input" placeholder="ไม่ระบุ = เงินสดทั่วไป">
-                        <div id="customer_list" class="list-group mt-1"></div>
+                        <label>ลูกค้า:</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control" id="customer_input" placeholder="ค้นหาลูกค้า (ไม่ระบุ = เงินสด)">
+                          <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" data-toggle="modal" data-target="#returnModal" title="รับคืนสินค้า"><i class="fa fa-undo" ></i> รับคืน</button>
+                          </div>
+                        </div>
                         <input type="hidden" id="customer_id">
+                        <div id="customer_list" class="list-group mt-1 position-absolute" style="z-index: 999;"></div>
                     </div>
 
                     <h5 class="mb-3">ตะกร้าสินค้า:</h5>
                     <table class="table table-sm table-bordered" id="cart_table">
                         <thead>
                             <tr>
-                                <th>ชื่อสินค้า</th>
+                                <th>สินค้า</th>
                                 <th>จำนวน</th>
-                                <th>ราคา/ชิ้น</th>
+                                <th>ราคาต่อหน่วย</th>
                                 <th>รวม</th>
                                 <th>ลบ</th>
                             </tr>
@@ -47,23 +51,25 @@ if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 11) {
                         <tfoot>
                             <tr>
                                 <td colspan="3" class="text-right">รวมทั้งหมด</td>
-                                <td id="total_price">0</td>
+                                <td id="total_price">0.00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
                     </table>
-
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-6" hidden>
                             <label>ส่วนลด (บาท):</label>
                             <input type="number" class="form-control" id="discount_input" placeholder="0" min="0">
                         </div>
                         <div class="form-group col-md-6">
                             <label>ยอดสุทธิ (บาท):</label>
-                            <input type="text" class="form-control" id="final_amount" disabled value="0">
+                            <input type="text" class="form-control" id="final_amount" disabled value="0.00">
                         </div>
                     </div>
-
+                    <div class="form-group">
+                      <label>ยอดคงเหลือ (ยังไม่ได้ชำระ):</label>
+                      <input type="text" class="form-control text-danger font-weight-bold" id="remaining_balance" disabled value="0.00">
+                    </div>
                     <h5 class="mt-3">ช่องทางชำระเงิน</h5>
                     <div class="form-row">
                         <div class="form-group col-md-4">
@@ -91,165 +97,78 @@ if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 11) {
                     </div>
 
                     <button class="btn btn-success btn-block mt-3" id="confirm_sale">บันทึกการขาย</button>
+                    
                 </div>
             </div>
         </div>
     </div>
   </div>
 </div>
+</main>
 
-<?php include_once("../partials/footer.php"); ?>
-<script>
-$(document).ready(function(){
-    $('#search_input').focus();
+    <!-- Modal รับคืนสินค้า -->
+    <div class="modal fade" id="returnModal" tabindex="-1" role="dialog" aria-labelledby="returnModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
 
-    $('#search_input').keyup(function(){
-        let query = $(this).val().trim();
+          <div class="modal-header py-2">
+            <h5 class="modal-title" id="returnModalLabel">คืนสินค้า</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="ปิด">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
 
-        // ✅ ตรวจหา customer โดยอัตโนมัติหากขึ้นต้นด้วย CU
-        if (query.startsWith("CU")) {
-            $.post("ajax/fetch_customers.php", {query: query}, function(data){
-                if (data.includes('data-id')) {
-                    let temp = $('<div>').html(data);
-                    let first = temp.find('a.select-customer').first();
-                    if (first.length > 0) {
-                        let name = first.data('name');
-                        let id = first.data('id');
-                        $('#customer_input').val(name);
-                        $('#customer_id').val(id);
-                        $('#search_input').val('').focus();
-                        $('#product_list').html('');
-                    }
-                }
-            });
-        }
+          <div class="modal-body">
+            <!-- 🔍 ค้นหาใบเสร็จ -->
+            <div class="form-inline mb-3">
+              <label class="mr-2">เลขใบเสร็จ:</label>
+              <input type="text" id="return_receipt_no" class="form-control mr-2" placeholder="เช่น RC20250700123">
+              <button class="btn btn-primary btn-sm" id="fetch_return_items">ค้นหา</button>
+            </div>
 
-        // ค้นหาสินค้าตามปกติ
-        if(query.length > 1){
-            $.post("ajax/fetch_products.php", {query:query}, function(data){
-                $('#product_list').html(data);
-            });
-        } else {
-            $('#product_list').html('');
-        }
-    });
+            <!-- 🧾 รายการสินค้าในใบเสร็จ -->
+            <div id="return_items_container">
+              <!-- จะถูกเติมผ่าน JS หลังจากกดค้นหา -->
+            </div>
+          </div>
 
-    $('#customer_input').keyup(function(){
-        let q = $(this).val().trim();
-        if(q.length > 1){
-            $.post("ajax/fetch_customers.php", {query:q}, function(data){
-                $('#customer_list').html(data);
-            });
-        } else {
-            $('#customer_list').html('');
-            $('#customer_id').val('');
-        }
-    });
+          <div class="modal-footer py-2">
+            <span class="text-danger mr-auto small" id="return_error" style="display:none;"></span>
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">ยกเลิก</button>
+            <button type="button" class="btn btn-success btn-sm" id="confirm_return_items">เพิ่มสินค้าที่คืนเข้าใบเสร็จ</button>
+          </div>
 
-    $(document).on('click', '.select-customer', function(){
-        let name = $(this).data('name');
-        let id = $(this).data('id');
-        $('#customer_input').val(name);
-        $('#customer_id').val(id);
-        $('#customer_list').html('');
-    });
+        </div>
+      </div>
+    </div>
 
-    $(document).on('click', '.add-to-cart', function(){
-        let id = $(this).data('id');
-        let name = $(this).data('name');
-        let price = $(this).data('price');
-        let imei = $(this).data('imei') || null;
 
-        let tr = `<tr data-id="${id}" data-imei="${imei}">
-                    <td>${name}</td>
-                    <td><input type="number" class="form-control qty" value="1" min="1" ${imei ? 'readonly' : ''}></td>
-                    <td>${price}</td>
-                    <td class="subtotal">${price}</td>
-                    <td><button class="btn btn-danger btn-sm remove">ลบ</button></td>
-                </tr>`;
-        $('#cart_table tbody').append(tr);
-        calculateTotal();
 
-        $('#search_input').val('').focus();
-        $('#product_list').html('');
-    });
+<!-- Modal แก้ไขราคาขาย -->
+<div class="modal fade" id="priceModal" tabindex="-1" role="dialog" aria-labelledby="priceModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="priceModalLabel">แก้ไขราคาขาย</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="ปิด">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div><strong id="modal_product_name">ชื่อสินค้า</strong></div>
+        <div class="form-group mb-2">
+          <label for="price_input" class="mb-1">ราคาขายใหม่ (บาท):</label>
+          <input type="number" step="0.01" class="form-control" id="price_input" autofocus>
+        </div>
+        <div id="price_warning" class="text-danger small" style="display:none;"></div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-primary btn-sm" id="confirm_price_btn">ตกลง</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-    $(document).on('input', '.qty, #discount_input', function(){
-        calculateTotal();
-    });
-
-    $(document).on('click', '.remove', function(){
-        $(this).closest('tr').remove();
-        calculateTotal();
-    });
-
-    $('#pay_credit').on('input', function(){
-        let val = parseFloat($(this).val()) || 0;
-        if (val > 0) {
-            $('#credit_provider_group').slideDown();
-        } else {
-            $('#credit_provider_group').slideUp();
-            $('#credit_provider').val('');
-        }
-    });
-
-    function calculateTotal(){
-        let total = 0;
-        $('#cart_table tbody tr').each(function(){
-            total += parseFloat($(this).find('.subtotal').text());
-        });
-        let discount = parseFloat($('#discount_input').val()) || 0;
-        let final = total - discount;
-        $('#total_price').text(total.toFixed(2));
-        $('#final_amount').val(final.toFixed(2));
-    }
-
-    $('#confirm_sale').click(function(){
-        let items = [];
-        $('#cart_table tbody tr').each(function(){
-            let id = $(this).data('id');
-            let qty = $(this).find('.qty').val();
-            let imei = $(this).data('imei') || null;
-            items.push({id:id, qty:qty, imei:imei});
-        });
-
-        let discount = parseFloat($('#discount_input').val()) || 0;
-        let customer_id = $('#customer_id').val() || null;
-        let payments = {
-            cash: parseFloat($('#pay_cash').val()) || 0,
-            transfer: parseFloat($('#pay_transfer').val()) || 0,
-            credit: parseFloat($('#pay_credit').val()) || 0,
-            credit_provider: $('#credit_provider').val() || null
-        };
-
-        let totalAmount = parseFloat($('#total_price').text());
-        let finalAmount = totalAmount - discount;
-        let paid = payments.cash + payments.transfer + payments.credit;
-
-        if (Math.abs(paid - finalAmount) > 0.01) {
-            alert("ยอดชำระไม่ตรงกับยอดสุทธิ กรุณาตรวจสอบอีกครั้ง");
-            return;
-        }
-
-        if (payments.credit > 0 && !payments.credit_provider) {
-            alert("กรุณาเลือกประเภทสินเชื่อให้ครบถ้วน");
-            return;
-        }
-
-        $.ajax({
-            url: "save_sale.php",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({items:items, discount:discount, payments:payments, customer_id:customer_id}),
-            success: function(response){
-                alert("ขายสินค้าสำเร็จ");
-                window.open("receipt.php?sale_id=" + response, "_blank");
-                location.reload();
-            },
-            error: function(xhr){
-                alert("เกิดข้อผิดพลาดในการบันทึกการขาย\n" + xhr.responseText);
-            }
-        });
-    });
-});
-</script>
+<script src="../js/sale_pos.js?v=<?= time() ?>"></script>
+<?php require_once __DIR__ . '/../partials/footer.php'; ?>

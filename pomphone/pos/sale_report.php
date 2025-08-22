@@ -2,10 +2,11 @@
 // sale_report.php - รายงานยอดขายเฉพาะวันนี้ + แสดงรายการสินค้าที่ขาย
 
 define('SECURE_ACCESS', true);
-require_once("../includes/connectdb.php");
-require_once("../includes/session.php");
+require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../partials/header.php';
+require_once __DIR__ . '/../partials/sidebar.php';
 
-if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 88) {
+if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 11) {
     http_response_code(403);
     exit("Unauthorized");
 }
@@ -46,12 +47,11 @@ foreach ($sales as $s) {
             $all_items[$key] = ['qty' => 0, 'sum' => 0];
         }
         $all_items[$key]['qty'] += $it['qty'];
-        $all_items[$key]['sum'] += $it['qty'] * $it['price'];
+        $all_items[$key]['sum'] += $it['qty'] * $it['price']-$it['item_discount'];
     }
 }
 ?>
-<?php include_once('../partials/header.php'); ?>
-<?php include_once('../partials/sidebar.php'); ?>
+<main>
 <div class="main-content container mt-4">
     <h3>รายงานยอดขายประจำวันที่ <?= date('d/m/Y') ?></h3>
     <hr>
@@ -69,4 +69,5 @@ foreach ($sales as $s) {
         </tbody>
     </table>
 </div>
-<?php include_once("../partials/footer.php"); ?>
+</main>
+<?php require_once __DIR__ . '/../partials/footer.php'; ?>

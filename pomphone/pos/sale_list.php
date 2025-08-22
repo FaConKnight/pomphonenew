@@ -2,10 +2,9 @@
 // sale_list.php - หน้าดูใบเสร็จประจำวัน + Reprint
 
 define('SECURE_ACCESS', true);
-require_once('../includes/connectdb.php');
-require_once('../includes/session.php');
-include_once('../partials/header.php');
-include_once('../partials/sidebar.php');
+require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../partials/header.php';
+require_once __DIR__ . '/../partials/sidebar.php';
 
 if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 1) {
     http_response_code(403);
@@ -20,15 +19,7 @@ $stmt = $pdo->prepare("SELECT s.id, s.receipt_no, s.sale_time, s.final_amount, e
 $stmt->execute([$today]);
 $sales = $stmt->fetchAll();
 ?>
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <title>รายการใบเสร็จวันนี้</title>
-    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-    <script src="../assets/js/jquery.min.js"></script>
-</head>
-
+<main>
 <h3>รายการใบเสร็จประจำวันที่ <?= date('d/m/Y') ?></h3>
 <table class="table table-bordered table-sm mt-3">
     <thead>
@@ -43,10 +34,10 @@ $sales = $stmt->fetchAll();
     <tbody>
         <?php foreach ($sales as $row): ?>
             <tr>
-                <td><?= date('H:i', strtotime($row['sale_time'])) ?></td>
-                <td><?= htmlspecialchars($row['receipt_no']) ?></td>
-                <td><?= htmlspecialchars($row['employee_name']) ?></td>
-                <td><?= number_format($row['final_amount'], 2) ?> บาท</td>
+                <td><?= safe_date($row['sale_time']) ?></td>
+                <td><?= safe_text($row['receipt_no']) ?></td>
+                <td><?= safe_text($row['employee_name']) ?></td>
+                <td><?= number_format($row['final_amount']?? 0, 2) ?> บาท</td>
                 <td>
                     <button class="btn btn-sm btn-warning reprint-btn" data-id="<?= $row['id'] ?>" data-receipt="<?= $row['receipt_no'] ?>">Reprint</button>
                 </td>
@@ -68,9 +59,22 @@ $sales = $stmt->fetchAll();
       <div class="modal-body">
         <form id="reprintForm">
             <input type="hidden" name="sale_id" id="modal_sale_id">
+
             <div class="form-group">
                 <label>เหตุผลในการพิมพ์ซ้ำ:</label>
-                <textarea class="form-control" name="reason" id="reprint_reason" required></textarea>
+                <select class="form-control" name="reason" id="reprint_reason" required onchange="toggleOtherReason(this)">
+                    <option value="">-- เลือกเหตุผล --</option>
+                    <option value="เครื่องพิมพ์มีปัญหา">เครื่องพิมพ์มีปัญหา</option>
+                    <option value="ลูกค้าทำใบเสร็จหาย">ลูกค้าทำใบเสร็จหาย</option>
+                    <option value="ใบเสร็จไม่สมบูรณ์">ใบเสร็จไม่สมบูรณ์</option>
+                    <option value="ลูกค้าร้องขอสำเนา">ลูกค้าร้องขอสำเนา</option>
+                    <option value="อื่นๆ">อื่น ๆ (ระบุ)</option>
+                </select>
+            </div>
+
+            <div class="form-group d-none" id="other_reason_group">
+                <label>ระบุเหตุผลอื่น ๆ:</label>
+                <input type="text" class="form-control" id="other_reason_input" placeholder="พิมพ์เหตุผล..." />
             </div>
         </form>
       </div>
@@ -81,23 +85,36 @@ $sales = $stmt->fetchAll();
     </div>
   </div>
 </div>
-<?php include_once("../partials/footer.php"); ?>
-<script src="../assets/js/bootstrap.bundle.min.js"></script>
+</main>
+<?php require_once __DIR__ . '/../partials/footer.php'; ?>
 <script>
+function toggleOtherReason(select) {
+    if (select.value === 'อื่นๆ') {
+        $('#other_reason_group').removeClass('d-none');
+    } else {
+        $('#other_reason_group').addClass('d-none');
+    }
+}
+
 $(document).ready(function(){
     $('.reprint-btn').click(function(){
-        let id = $(this).data('id');
-        let receipt = $(this).data('receipt');
-        $('#modal_sale_id').val(id);
+        $('#modal_sale_id').val($(this).data('id'));
         $('#reprint_reason').val('');
+        $('#other_reason_group').addClass('d-none');
+        $('#other_reason_input').val('');
         $('#reprintModal').modal('show');
     });
 
     $('#reprintForm').submit(function(e){
         e.preventDefault();
         let sale_id = $('#modal_sale_id').val();
-        let reason = $('#reprint_reason').val().trim();
-        if (!reason) return alert("กรุณาระบุเหตุผล");
+        let reason = $('#reprint_reason').val();
+        if (!reason) return alert("กรุณาเลือกเหตุผล");
+
+        if (reason === 'อื่นๆ') {
+            reason = $('#other_reason_input').val().trim();
+            if (!reason) return alert("กรุณาระบุเหตุผลเพิ่มเติม");
+        }
 
         $.post("log_reprint.php", {sale_id: sale_id, reason: reason}, function(res){
             window.open("receipt.php?sale_id=" + sale_id + "&reprint=1", "_blank");

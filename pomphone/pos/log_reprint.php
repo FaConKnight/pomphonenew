@@ -2,8 +2,7 @@
 // log_reprint.php - บันทึกเหตุผลการพิมพ์ใบเสร็จซ้ำ
 
 define('SECURE_ACCESS', true);
-require_once("../includes/connectdb.php");
-require_once("../includes/session.php");
+require_once __DIR__ . '/../includes/bootstrap.php';
 
 if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 1) {
     http_response_code(403);

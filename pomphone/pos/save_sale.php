@@ -1,9 +1,8 @@
 <?php
-// save_sale.php - บันทึกการขายพร้อมเลขใบเสร็จ RCyyyyMMddxxxxx
+// save_sale.php - บันทึกการขายพร้อมเลขใบเสร็จ RCyyyyMMxxxxx
 
 define('SECURE_ACCESS', true);
-require_once("../includes/connectdb.php");
-require_once("../includes/session.php");
+require_once __DIR__ . '/../includes/bootstrap.php';
 
 if (!isset($_SESSION['employee_id']) || $_SESSION['employee_rank'] < 1) {
     http_response_code(403);
@@ -14,6 +13,7 @@ $data = json_decode(file_get_contents("php://input"), true);
 $items = $data['items'] ?? [];
 $discount = floatval($data['discount'] ?? 0);
 $payments = $data['payments'] ?? [];
+$change_amount = floatval($data['change_amount'] ?? 0);
 $customer_id = $data['customer_id'] ?? null;
 
 if (empty($items)) {
@@ -21,27 +21,31 @@ if (empty($items)) {
     exit("ไม่มีรายการสินค้า");
 }
 
+
 try {
     $pdo->beginTransaction();
 
     $employee_id = $_SESSION['employee_id'];
     $total = 0;
     $final = 0;
+    $net_total = 0;
+    $net_discount = 0;
 
     // 1. สร้างบิลการขาย (ชั่วคราวก่อนรู้เลขใบเสร็จ)
     $stmt = $pdo->prepare("INSERT INTO sale (employee_id, sale_time, total, discount, final_amount, customer_id) VALUES (?, NOW(), 0, ?, 0, ?)");
     $stmt->execute([$employee_id, $discount, $customer_id]);
     $sale_id = $pdo->lastInsertId();
 
-    // 2. สร้างเลขใบเสร็จ RC + yyyyMMdd + running
-    $today = date('Y-m-d');
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM sale WHERE DATE(sale_time) = ? AND id <= ?");
-    $stmt->execute([$today, $sale_id]);
-    $count_today = $stmt->fetchColumn();
-    $receipt_no = 'RC' . date('Ymd') . str_pad($count_today, 5, '0', STR_PAD_LEFT);
+    // 2. สร้างเลขใบเสร็จ RC + yyyyMM + running
+    $yearMonth = date('Ym'); // yyyyMM
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM sale WHERE DATE_FORMAT(sale_time, '%Y%m') = ?");
+    $stmt->execute([$yearMonth]);
+    $count_month = $stmt->fetchColumn() + 1;
 
-    $pdo->prepare("UPDATE sale SET receipt_no = ? WHERE id = ?")->execute([$receipt_no, $sale_id]);
+    $receipt_no = 'RC' . $yearMonth . str_pad($count_month, 5, '0', STR_PAD_LEFT);
+    $fullRef = encodeReceiptReference($receipt_no);
 
+    $pdo->prepare("UPDATE sale SET receipt_no = ? , fullref = ? WHERE id = ?")->execute([$receipt_no, $fullRef, $sale_id]);
     // เตรียม log
     $log_detail = [];
 
@@ -58,13 +62,20 @@ try {
 
             $price = $row['sell_price'];
             $cost = $row['cost_price'];
+            $item_discount = floatval($item['item_discount'] ?? 0);
+            $final_price = $price - $item_discount;
             $total += $price;
+            $net_total += $final_price;
+            $net_discount += $item_discount;
 
-            $stmt = $pdo->prepare("INSERT INTO sale_items (sale_id, product_id, qty, price, cost_price, imei) VALUES (?, ?, 1, ?, ?, ?)");
-            $stmt->execute([$sale_id, $product_id, $price, $cost, $imei]);
+            $stmt = $pdo->prepare("INSERT INTO sale_items (sale_id, product_id, qty, price, cost_price, imei, item_discount) VALUES (?, ?, 1, ?, ?, ?, ?)");
+            $stmt->execute([$sale_id, $product_id, $price, $cost, $imei, $item_discount]);
+
+
 
             $pdo->prepare("UPDATE products_items SET status = 'sold' WHERE imei1 = ? LIMIT 1")->execute([$imei]);
-            $log_detail[] = "ขาย IMEI [$imei] ราคา $price";
+            $log_detail[] = "ขาย IMEI [$imei] ราคา $price ลด $item_discount";
+
         } else {
             $stmt = $pdo->prepare("SELECT sell_price, cost_price, stock_quantity FROM products WHERE id = ? LIMIT 1");
             $stmt->execute([$product_id]);
@@ -73,18 +84,24 @@ try {
 
             $price = $row['sell_price'];
             $cost = $row['cost_price'];
-            $total += $price * $qty;
+            $item_discount = floatval($item['item_discount'] ?? 0);
+            $final_price = ($price * $qty) - ($item_discount * $qty);
+            $total += ($price * $qty);
+            $net_total += $final_price;
+            $net_discount += ($item_discount * $qty);
 
-            $stmt = $pdo->prepare("INSERT INTO sale_items (sale_id, product_id, qty, price, cost_price) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$sale_id, $product_id, $qty, $price, $cost]);
+            $stmt = $pdo->prepare("INSERT INTO sale_items (sale_id, product_id, qty, price, cost_price, item_discount) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$sale_id, $product_id, $qty, $price, $cost, $item_discount]);
 
             $pdo->prepare("UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?")->execute([$qty, $product_id]);
-            $log_detail[] = "ขายสินค้า ID $product_id x$qty ราคา $price";
+            $log_detail[] = "ขายสินค้า ID $product_id x$qty ราคา $price ลด $item_discount";
+
         }
     }
 
-    $final = $total - $discount;
-    $pdo->prepare("UPDATE sale SET total = ?, final_amount = ? WHERE id = ?")->execute([$total, $final, $sale_id]);
+    $final = $net_total - $discount;
+    $net_discount += $discount;
+    $pdo->prepare("UPDATE sale SET total = ?, final_amount = ? , discount = ? , change_amount = ? WHERE id = ?")->execute([$total, $final, $net_discount, $change_amount, $sale_id]);
 
     // 3. บันทึกช่องทางการชำระเงิน
     foreach (["cash", "transfer", "credit"] as $method) {
