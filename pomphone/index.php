@@ -11,13 +11,16 @@ $employee_rank = $_SESSION['employee_rank'] ?? 0;
 
 // redirect ตามสิทธิ์ role
 switch ($employee_rank) {
+    case 100:
     case 99:
     case 88:
-        header("Location: managers/add_product.php");
+        header("Location: managers/index.php");
+        exit;
         break;
     case 77:
     case 11:
-        header("Location: pos/sell.php");
+        header("Location: pos/sale.php");
+        exit;
         break;
     default:
         echo "\u274c บัญชีของคุณถูกปิดใช้งานหรือไม่มีสิทธิ์เข้าถึงระบบ";
