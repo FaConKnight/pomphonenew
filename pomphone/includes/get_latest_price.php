@@ -1,7 +1,6 @@
 <?php
 define('SECURE_ACCESS', true);
-require_once('../includes/connectdb.php');
-require_once('../includes/session.php');
+require_once __DIR__ . '/../includes/bootstrap.php';
 
 header('Content-Type: application/json');
 

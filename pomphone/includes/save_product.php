@@ -2,8 +2,7 @@
 // /cooladmin/includes/save_product.php
 
 define('SECURE_ACCESS', true);
-require_once('../includes/connectdb.php');
-require_once('../includes/session.php');
+require_once __DIR__ . '/../includes/bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   http_response_code(405);
@@ -19,15 +18,17 @@ if (!$employee_id || ($_SESSION['employee_rank'] ?? 0) < 77) {
 $product_id = $_POST['product_id'] ?? null;
 $category_id = $_POST['category_id'] ?? null;
 $supplier_id = $_POST['supplier_id'] ?? null;
-$cost_price = floatval($_POST['cost_price'] ?? 0);
-$sell_price = floatval($_POST['sell_price'] ?? 0);
-$wholesale_price = floatval($_POST['wholesale_price'] ?? 0);
-$quantity = intval($_POST['quantity'] ?? 0);
+$cost_price = max(0, floatval($_POST['cost_price'] ?? 0));
+$sell_price = max(0, floatval($_POST['sell_price'] ?? 0));
+$wholesale_price_raw = $cost_price * 1.05;
+$wholesale_price = ceil($wholesale_price_raw / 10) * 10;
+$quantity   = max(0, intval($_POST['quantity'] ?? 0));
 $imei_list = trim($_POST['imei_list'] ?? '');
 
 if (!$product_id || !$category_id || !$supplier_id) {
   exit('กรุณากรอกข้อมูลให้ครบ');
 }
+
 
 try {
   $pdo->beginTransaction();
@@ -64,19 +65,22 @@ try {
     }
   } else {
     // สินค้าทั่วไป
+    if (!$is_trackable && $quantity <= 0) {
+      throw new Exception("กรุณาระบุจำนวนสินค้าให้ถูกต้อง (> 0)");
+    }
     $update = $pdo->prepare("UPDATE products 
       SET stock_quantity = stock_quantity + ?, cost_price = ?, sell_price = ?, wholesale_price = ?
       WHERE id = ?");
     $update->execute([$quantity, $cost_price, $sell_price, $wholesale_price, $product_id]);
 
     $log = $pdo->prepare("INSERT INTO stock_logs 
-      (product_id, employee_id, action, quantity, price, supplier_id, created_at)
-      VALUES (?, ?, 'add_stock', ?, ?, ?, NOW())");
-    $log->execute([$product_id, $employee_id, $quantity, $cost_price, $supplier_id]);
+      (product_id, employee_id, action, quantity, remark, supplier_id, created_at)
+      VALUES (?, ?, 'in', ?, ?, ?, NOW())");
+    $log->execute([$product_id, $employee_id, $quantity, "เพิ่มจำนวนสินค้าที่ $product_id.จำนวน.$quantity", $supplier_id]);
   }
 
   $pdo->commit();
-  header('Location: ../managers/add_product.php?success=เพิ่มสินค้าเข้าสต๊อกสำเร็จ');
+  header('Location: ../stock/add_product.php?success=เพิ่มสินค้าเข้าสต๊อกสำเร็จ');
   exit;
 } catch (Exception $e) {
   $pdo->rollBack();
