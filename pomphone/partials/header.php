@@ -10,7 +10,7 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <!-- Title Page-->
     <title>จัดการหลังบ้านร้าน ป้อมมือถือ V.2</title>
-    <link rel="icon" type="image/x-icon" href="../images/icon/icon-re-32-32.png">
+    <link rel="icon" type="image/x-icon" href="../images/icon/logo.png">
     <!-- Fontfaces CSS-->
     <link href="../vendor/font-awesome-6/css/v5-font-face.css" rel="stylesheet" media="all">
     <link href="../vendor/font-awesome-6/css/all.min.css" rel="stylesheet" media="all">
@@ -34,3 +34,4 @@
 
   </head>
   <body>
+    

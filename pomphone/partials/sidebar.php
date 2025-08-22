@@ -5,7 +5,8 @@ $admin = $rank >= 99; // manager ขึ้นไปเห็นชื่อเ�
 $manager = $rank >= 88; // manager ขึ้นไปเห็นชื่อเต็ม
 $headshop = $rank >= 77; // Headshop ขึ้นไปแก้ไขข้อมูลได้
 $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อมูลได้
-
+$dev = $rank >= 100;
+$close = false;
 ?>
 
 <!-- HEADER DESKTOP-->
@@ -14,7 +15,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                 <div class="header3-wrap">
                     <div class="header__logo">
                         <a href="#">
-                            <img src="images/icon/logo-white.png" alt="CoolAdmin" />
+                            <!-- img src="../images/icon/logo-white.png" alt="CoolAdmin" /-->
                         </a>
                     </div>
                     <div class="header__navbar">
@@ -25,10 +26,8 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                     <i class="fas fa-shopping-basket"></i>
                                     <span class="bot-line"></span>ขายของ</a>
                             </li>
-                            <?php endif; ?>                                
-                            <?php if ($employee): ?>
                             <li class="has-sub">
-                                <a href="./">
+                                <a href="#" >
                                     <i class="fas fa-wrench"></i>ระบบงานซ่อม
                                     <span class="bot-line"></span>
                                 </a>
@@ -37,7 +36,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                         <a href="../repair/add_repair.php">รับเครื่องซ่อมจากลูกค้า</a>
                                     </li>
                                     <li>
-                                        <a href="addbill.php">เช็คเครื่องซ่อม/ปรับเปลี่ยนสถานะ</a>
+                                        <a href="../repair/repairs_list.php">เช็คเครื่องซ่อม/ปรับเปลี่ยนสถานะ</a>
                                     </li>
                                 </ul>
                             </li>
@@ -49,16 +48,16 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                     <span class="bot-line"></span>คลังสินค้า</a>
                                 <ul class="header3-sub-list list-unstyled">
                                     <li>
-                                        <a href="../managers/show_product_all.php">สินค้าทั้งหมด</a>
+                                        <a href="../stock/show_product_all.php">สินค้าทั้งหมด</a>
                                     </li>
                                     <li>
-                                        <a href="../managers/add_product.php">เพิ่มสินค้า</a>
+                                        <a href="../stock/add_product.php">เพิ่มสินค้า</a>
                                     </li>
                                     <li>
-                                        <a href="../managers/show_product_name.php">รายชื่อสินค้า</a>
+                                        <a href="../stock/show_product_name.php">รายชื่อสินค้า</a>
                                     </li>
-                                    <li>
-                                        <a href="../managers/fontawesome.html">แก้ไขข้อมูลสินค้า</a>
+                                    <li hidden>
+                                        <a href="../stock/fontawesome.html">แก้ไขข้อมูลสินค้า</a>
                                     </li>
                                 </ul>
                             </li>
@@ -72,8 +71,8 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                     <li>
                                         <a href="../managers/show_company.php">ข้อมูล บริษัท</a>
                                     </li>
-                                    <li>
-                                        <a href="register.html">ข้อมูล พนักงาน</a>
+                                    <li hidden>
+                                        <a href="../managers/show_employee.php">ข้อมูล พนักงาน</a>
                                     </li>
                                     <li>
                                         <a href="../managers/show_customer.php">ข้อมูล ลูกค้า</a>
@@ -81,7 +80,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                 </ul>
                             </li>
                             <?php endif; ?>
-                            <?php if ($employee&&false): ?>
+                            <?php if ($employee&&$close): ?>
                             <li class="has-sub">
                                 <a href="#">
                                     <i class="fa-solid fa-sack-dollar"></i>
@@ -113,24 +112,36 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                 <i class="fas fa-tools"></i>
                                 <span class="bot-line"></span>Backend (Manager)</a>
                             <ul class="header3-sub-list list-unstyled">
-                                <li><a href="../managers/manage_footer_rules.php">ข้อความท้ายใบเสร็จ</a></li>
-                                <li><a href="../managers/sale_report.php">รายงานยอดขาย</a></li>
+                                <li><a href="../promotion/manage_footer_rules.php">ข้อความท้ายใบเสร็จ</a></li>
+                                <li><a href="../promotion/broadcast_create.php">สร้าง Broadcast LINE</a></li>
+                                <li><a href="../stock/sale_report.php">รายงานยอดขาย</a></li>
                             </ul>
                         </li>
                         <?php endif; ?>
-                        <?php if ($admin): ?>
+                        <?php if ($manager&&$close): ?>
                         <li class="has-sub">
+                            <a href="#">
+                                <i class="fas fa-tools"></i>
+                                <span class="bot-line"></span>Broadcast LINE</a>
+                            <ul class="header3-sub-list list-unstyled">
+                                <li><a href="../stock/sale_report.php">รายงานยอดขาย</a></li>
+                            </ul>
+                        </li>
+                        <?php endif; ?>
+                        <?php //if ($admin): ?>
+                        <!-- li class="has-sub">
                             <a href="#">
                                 <i class="fas fa-tools"></i>
                                 <span class="bot-line"></span>Logs</a>
                             <ul class="header3-sub-list list-unstyled">
-                                <li><a href="../managers/repair_logs.php">Repair Logs (ระบบซ่อม)</a></li>
-                                <li><a href="../managers/stock_logs.php">Stock Logs (ระบบสินค้า)</a></li>
-                                <li><a href="../managers/saving_logs.php">Saving Logs (ระบบออม)</a></li>
+                                <li><a href="../repair/repair_logs.php">Repair Logs (ระบบซ่อม)</a></li>
+                                <li><a href="../stock/stock_logs.php">Stock Logs (ระบบสินค้า)</a></li>
+                                <li><a href="../saving/saving_logs.php">Saving Logs (ระบบออม)</a></li>
                                 <li><a href="../managers/system_logs.php">System Logs </a></li>
                             </ul>
-                        </li>
-                        <?php endif; ?>
+                        </li -->
+                        <?php //endif; ?>
+
                         </ul>
                     </div>
                     <div class="header__tool">
@@ -175,6 +186,42 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                         <div class="header-button-item js-item-menu">
                             <i class="zmdi zmdi-settings"></i>
                             <div class="setting-dropdown js-dropdown">
+                                <?php if ($admin): ?>
+                                <div class="account-dropdown__body">
+                                    <div class="account-dropdown__item">
+                                        <a href="../repair/repair_logs.php">Repair Logs (ระบบซ่อม)</a>
+                                    </div>
+                                    <div class="account-dropdown__item">
+                                        <a href="../stock/stock_logs.php">Stock Logs (ระบบสินค้า)</a>
+                                    </div>
+                                    <div class="account-dropdown__item">
+                                        <a href="../saving/saving_logs.php">Saving Logs (ระบบออม)</a>
+                                    </div>
+                                    <div class="account-dropdown__item">
+                                        <a href="../managers/system_logs.php">System Logs </a>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+                                <div class="account-dropdown__body">
+                                    <div class="account-dropdown__item">
+                                        <a href="#">
+                                            <i class="zmdi zmdi-globe"></i>Language</a>
+                                    </div>
+                                    <div class="account-dropdown__item">
+                                        <a href="#">
+                                            <i class="zmdi zmdi-pin"></i>Location</a>
+                                    </div>
+                                    <div class="account-dropdown__item">
+                                        <a href="#">
+                                            <i class="zmdi zmdi-email"></i>Email</a>
+                                    </div>
+                                    <div class="account-dropdown__item">
+                                        <a href="#">
+                                            <i class="zmdi zmdi-notifications"></i>Notifications</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- div class="setting-dropdown js-dropdown">
                                 <div class="account-dropdown__body">
                                     <div class="account-dropdown__item">
                                         <a href="#">
@@ -207,12 +254,15 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                             <i class="zmdi zmdi-notifications"></i>Notifications</a>
                                     </div>
                                 </div>
-                            </div>
+                            </div -->
+                        </div>
+                        <div class="header-button-item js-item-menu">
+                            <i id="fullscreen-btn" class="zmdi zmdi-fullscreen" style="cursor:pointer;"></i>
                         </div>
                         <div class="account-wrap">
                             <div class="account-item account-item--style2 clearfix js-item-menu">
                                 <div class="image">
-                                    <img src="images/icon/avatar-01.jpg" alt="John Doe" />
+                                    <!--img src="../images/icon/avatar-01.jpg" alt="John Doe" /-->
                                 </div>
                                 <div class="content">
                                     <a class="js-acc-btn" href="#">john doe</a>
@@ -221,7 +271,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                     <div class="info clearfix">
                                         <div class="image">
                                             <a href="#">
-                                                <img src="images/icon/avatar-01.jpg" alt="John Doe" />
+                                                <!--img src="../images/icon/avatar-01.jpg" alt="John Doe" /-->
                                             </a>
                                         </div>
                                         <div class="content">
@@ -264,7 +314,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                 <div class="container-fluid">
                     <div class="header-mobile-inner">
                         <a class="logo" href="index.html">
-                            <img src="images/icon/logo-white.png" alt="CoolAdmin" />
+                            <!--img src="../images/icon/logo-white.png" alt="CoolAdmin" /-->
                         </a>
                         <button class="hamburger hamburger--slider" type="button">
                             <span class="hamburger-box">
@@ -277,7 +327,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
             <nav class="navbar-mobile">
                 <div class="container-fluid">
                     <ul class="navbar-mobile__list list-unstyled">
-                        <li class="has-sub">
+                        <!-- li class="has-sub">
                             <a class="js-arrow" href="#">
                                 <i class="fas fa-tachometer-alt"></i>Dashboard</a>
                             <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
@@ -294,7 +344,29 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                     <a href="index4.html">Dashboard 4</a>
                                 </li>
                             </ul>
+                        </li -->
+                        <?php if ($employee): ?>
+                         <li>
+                            <a href="../pos/sale.php" >
+                                <i class="fas fa-shopping-basket"></i>
+                                <span class="bot-line"></span>ขายของ</a>
                         </li>
+                        <li class="has-sub">
+                            <a class="js-arrow" href="#">
+                                <i class="fas fa-tachometer-alt"></i>ระบบงานซ่อม
+                                <span class="bot-line"></span>
+                            </a>
+                            <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
+                                <li>
+                                    <a href="../repair/add_repair.php">รับเครื่องซ่อมจากลูกค้า</a>
+                                </li>
+                                <li>
+                                    <a href="../repair/repairs_list.php">เช็คเครื่องซ่อม/ปรับเปลี่ยนสถานะ</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <?php endif; ?>
+                        <?php if ($dev): ?>
                         <li>
                             <a href="chart.html">
                                 <i class="fas fa-chart-bar"></i>Charts</a>
@@ -367,6 +439,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                                 <li>
                                     <a href="typo.html">Typography</a>
                                 </li>
+                                <?php endif; ?>
                             </ul>
                         </li>
                     </ul>
@@ -454,7 +527,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                 <div class="account-wrap">
                     <div class="account-item account-item--style2 clearfix js-item-menu">
                         <div class="image">
-                            <img src="images/icon/avatar-01.jpg" alt="John Doe" />
+                            <!--img src="../images/icon/avatar-01.jpg" alt="John Doe" /-->
                         </div>
                         <div class="content">
                             <a class="js-acc-btn" href="#">john doe</a>
@@ -463,7 +536,7 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
                             <div class="info clearfix">
                                 <div class="image">
                                     <a href="#">
-                                        <img src="images/icon/avatar-01.jpg" alt="John Doe" />
+                                        <!--img src="../images/icon/avatar-01.jpg" alt="John Doe" /-->
                                     </a>
                                 </div>
                                 <div class="content">
@@ -497,3 +570,56 @@ $employee = $rank >= 11; // saleman ขึ้นไปแก้ไขข้อ�
             </div>
         </div>
         <!-- END HEADER MOBILE -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const fsButton = document.getElementById('fullscreen-btn');
+
+    fsButton.addEventListener('click', function () {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            enterFullScreen();
+        } else {
+            exitFullScreen();
+        }
+    });
+
+    function enterFullScreen() {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+            el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+        } else if (el.msRequestFullscreen) {
+            el.msRequestFullscreen();
+        }
+    }
+
+    function exitFullScreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+
+    // ตรวจจับสถานะ fullscreen เปลี่ยน แล้วเปลี่ยนไอคอน
+    document.addEventListener('fullscreenchange', toggleIcon);
+    document.addEventListener('webkitfullscreenchange', toggleIcon);
+    document.addEventListener('msfullscreenchange', toggleIcon);
+
+    function toggleIcon() {
+        if (
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement
+        ) {
+            fsButton.classList.remove('zmdi-fullscreen');
+            fsButton.classList.add('zmdi-fullscreen-exit');
+        } else {
+            fsButton.classList.remove('zmdi-fullscreen-exit');
+            fsButton.classList.add('zmdi-fullscreen');
+        }
+    }
+});
+</script>
